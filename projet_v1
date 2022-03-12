@@ -25,12 +25,12 @@ def distance(x,y):
         d = d + (x[i]-y[i])**2    
     return np.sqrt(d)    
     
-def deriv(t,y,params):
+def deriv(t,y,params): #le vecteur y représente ici : y0 = x_terre, y1 = x_soleil, y2 = vx_terre, y3 = vx_soleil
     dy = np.empty(4)
     dy[0] = y[2]
     dy[1] = y[3]
-    dy[2] = params[0]*params[2]/(distance(params[3],params[4])**3)*(y[1]-y[0])
-    dy[3] = params[0]*params[1]/(distance(params[3],params[4])**3)*(y[0]-y[1])
+    dy[2] = params[0]*params[2]/distance(params[4],params[3])**3*(y[1]-y[0])
+    dy[3] = params[0]*params[1]/distance(params[3],params[4])**3*(y[0]-y[1])
     return dy
 
 def rk4(x, dx, y, deriv,params):
@@ -66,6 +66,7 @@ vy_soleil = np.empty(T)
 
 x = np.empty(4)
 y = np.empty(4)
+
 delta_t = 0.05
 
 G = 6.67408*10**(-11)
@@ -76,46 +77,64 @@ m_soleil = 1.988*10**(30)
 
 #valeurs initiales - calcul pour les coordonées X
 
-x[0] = 0  #coordonnée x initiale pour la terre
-x[1] = 150000000  #coordonnée x initiale pour le soleil
+x[0] = 150000000  #coordonnée x initiale pour la terre
+x[1] = 0  #coordonnée x initiale pour le soleil
 x[2] = 0  #coordonné x de la vitesse initiale de la terre v_x_terre[0]
 x[3] = 0  #coordonné x de la vitesse initiale du soleil v_x_soleil[0]
 
 y[0] = 0  #coordonné y initiale de la terre
 y[1] = 0  #coordonné y initiale du soeil 
-y[2] = 1000  #coordonné y de la vitesse initiale de la terre v_y_terre[0]
+y[2] = 1  #coordonné y de la vitesse initiale de la terre v_y_terre[0]
 y[3] = 0  #coordonné y de la vitesse initiale du soleil v_y_soleil[0]
 
 ###########   CODE
 Tps=np.arange(T)
 
-for t in Tps:
-    r_terre = np.array([x[0],y[0]])
-    r_soleil = np.array([x[1],y[1]])
-    pms = [G,m_terre,m_soleil,r_terre,r_soleil]
 
+r_terre = np.array([x[0],y[0]])
+r_soleil = np.array([x[1],y[1]])
+pms = [G,m_terre,m_soleil,r_terre,r_soleil]
+
+for t in Tps:
     x_terre[t] = x[0]
     x_soleil[t] = x[1]
     vx_terre[t] = x[2]
     vx_soleil[t] = x[3]
-    x = rk4(t,delta_t,x,deriv,pms)
-    
+    x = rk4(t,delta_t,x,deriv,pms)    
+
     y_terre[t] = y[0]
     y_soleil[t] = y[1]
     vy_terre[t] = y[2]
     vy_soleil[t] = y[3]
     y = rk4(t,delta_t,y,deriv,pms)
 
-x_terre
-y_terre
-x_soleil
+    r_terre = np.array([x[0],y[0]])
+    r_soleil = np.array([x[1],y[1]])
 
 ###########   GRAPHIQUES
 
-fig1 = plt.figure(figsize=(6, 3), dpi=150)
+figure1 = plt.figure(figsize=(6, 3), dpi=150)
 plt.xlabel('abscisse')
 plt.ylabel("ordonné")
 plt.title("Trajectoire terre")
 plt.plot(x_terre,y_terre, label = "Trajectoire")
+# #plt.plot(T,xth, label = "Erreur")
+# plt.legend(loc='upper right')
+# plt.show()
+# fig1.savefig("q11.pdf", format = "pdf")
+# end = time.time()
+# print(end-start)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
