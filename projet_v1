@@ -117,24 +117,5 @@ figure1 = plt.figure(figsize=(6, 3), dpi=150)
 plt.xlabel('abscisse')
 plt.ylabel("ordonné")
 plt.title("Trajectoire terre")
-plt.plot(x_terre,y_terre, label = "Trajectoire")
-# #plt.plot(T,xth, label = "Erreur")
-# plt.legend(loc='upper right')
-# plt.show()
-# fig1.savefig("q11.pdf", format = "pdf")
-# end = time.time()
-# print(end-start)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+plt.plot(x_terre,y_terre, label = "Trajectoire terre")
+plt.plot(x_soleil,y_soleil, label = "Trajectoire soleil")
