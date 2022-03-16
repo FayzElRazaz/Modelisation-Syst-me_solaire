@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-start = time.time()
+start = time.time()  ##temps commence
 ###########   PARAMETRES
 
 #Fonction distance euclidienne
