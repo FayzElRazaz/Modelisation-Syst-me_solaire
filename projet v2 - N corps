@@ -8,7 +8,7 @@ Created on Sun Mar 13 18:29:19 2022
 
 import numpy as np
 
-#Calcul de la force
+#Calcul de la force F
 def A(r,m,G):
     N = r.shape[0]
     a = np.zeros((N,3))
