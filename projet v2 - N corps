@@ -28,7 +28,7 @@ def A(r,m,G):
                 a[i,2] += G*dz*d*m[j]
     return a
 
-#Initialisation random des coordonnées
+#Initialisation random des coordonnées, utile pour les système avec beaucoup de particules
 def init_coord():
     return np.random.normal(0,1,3)
 
@@ -41,27 +41,26 @@ a = np.zeros([N,3])
 #Cas où tous les corps ont même masse
 #m = np.ones(N)
 #Cas où les poids sont réparties de façon aléatoires
-m = np.array([10000,1,1])
+#Poids respectifs du soleil, de la terre et de la lune
+m = np.array([1.989E+30,5.972E+24,7.342E+22]) 
 
 #Remplissage initial aléatoire
 # for i in range(r.shape[0]):
 #     r[i] = init_coord()
-
 # for i in range(v.shape[0]):
 #     v[i] = init_coord()
 
-r[0,:] = 0
-r[1,:] = np.array([100,0,0])
-r[2,:] = np.array([0,100,0])
-v[0,:] = 0
-v[1,:] = np.array([0,1,0])
-v[2,:] = np.array([-1,0,0])
+r[0,:] = np.array([0,0,0]) #Coordonnées soleil
+r[1,:] = np.array([-1.492107302174159E+08,-2.033696924730195E+07,2.993765246242471E+04]) #Coordonnées terre
+r[2,:] = np.array([-1.488965346084017E+08,-2.054043151982423E+07,-3.609859317591414E+03]) #Coordonnées lune
 
+v[0,:] = np.array([0,0,0]) #Vitesse soleil
+v[1,:] = np.array([3.144176010978470E+05,-2.560860397868225E+06,1.413888044469161E+02]) #Vitesse terre
+v[2,:] = np.array([3.656255311799980E+05,-2.486288805256289E+06,4.718846490831595E+02]) #Vitesse lune
 
-
-T=50
+T= 360
 dt = 1
-G = 1.0
+G = 6.67408*10**(-11)*10**(-9)*7464960000 #constante de gravité passée de m^3*kg^-1*s^-2 à km^3*kg^-1*J^-2 où J correpond à jours
 t = 0
 
 POS = np.empty([N,3,T])
@@ -75,14 +74,14 @@ for i in range(T):
     a = A(r,m,G)
     v = v+dt/2.0*a
     t = t+dt
-
+    
+#POS[1,1,0]
+ax = plt.axes(projection='3d')
 for i in range(T):
-    plt.scatter(POS[:,0,i],POS[:,1,i], marker = ".", color="blue")
-    plt.pause(0.01)
-    
-plt.scatter(POS[:,0,0],POS[:,1,0], marker = ".")
-    
-    
+    plt.plot(POS[0,0,i],POS[0,1,i], POS[0,2,i],marker = "o", color="yellow")
+    plt.plot(POS[1,0,i],POS[1,1,i], POS[1,2,i],marker = ".", color="blue")
+    plt.plot(POS[2,0,i],POS[2,1,i], POS[2,2,i],marker = ".", color="grey")        
+    plt.pause(0.000001) 
     
     
     
