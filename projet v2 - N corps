@@ -58,7 +58,7 @@ v[0,:] = np.array([0,0,0]) #Vitesse soleil
 v[1,:] = np.array([3.144176010978470E+05,-2.560860397868225E+06,1.413888044469161E+02]) #Vitesse terre
 v[2,:] = np.array([3.656255311799980E+05,-2.486288805256289E+06,4.718846490831595E+02]) #Vitesse lune
 
-T= 360
+T= 50
 dt = 1
 G = 6.67408*10**(-11)*10**(-9)*7464960000 #constante de gravité passée de m^3*kg^-1*s^-2 à km^3*kg^-1*J^-2 où J correpond à jours
 t = 0
@@ -77,14 +77,30 @@ for i in range(T):
     
 #POS[1,1,0]
 ax = plt.axes(projection='3d')
+#plt.xlim(-1E+09,1E+09)
+#plt.ylim(-1E+09,1E+09)
+
+# p = 10
+# for i in range(0,T,p):
+#     ax = plt.axes(projection='3d')
+#     ax.set_zlim(-30000,30000)
+#     plt.xlim(-1E+08,1E+08)
+#     plt.ylim(-3E+08,3E+08)
+#     #plt.zlim(-50000,50000)
+#     for j in range(p):
+#         plt.plot(POS[0,0,i+j],POS[0,1,i+j], POS[0,2,i+j],marker = "o", color="yellow")
+#         plt.plot(POS[1,0,i+j],POS[1,1,i+j], POS[1,2,i+j],marker = "o", color="blue")
+#         plt.plot(POS[2,0,i+j],POS[2,1,i+j], POS[2,2,i+j],linestyle = 'o', color="grey")        
+#         plt.pause(0.000001) 
+#     plt.clf()    
+    
 for i in range(T):
-    plt.plot(POS[0,0,i],POS[0,1,i], POS[0,2,i],marker = "o", color="yellow")
-    plt.plot(POS[1,0,i],POS[1,1,i], POS[1,2,i],marker = ".", color="blue")
-    plt.plot(POS[2,0,i],POS[2,1,i], POS[2,2,i],marker = ".", color="grey")        
+    plt.plot(POS[0,0,i],POS[0,1,i], POS[0,2,i],marker = "o", color="yellow", markersize = 40)
+    plt.plot(POS[1,0,i],POS[1,1,i], POS[1,2,i],marker = "o", color="blue", markersize = 10)
+    plt.plot(POS[2,0,i],POS[2,1,i], POS[2,2,i],marker = 'o', color="grey", markersize = 5)        
     plt.pause(0.000001) 
-    
-    
-    
+
+
     
     
     
