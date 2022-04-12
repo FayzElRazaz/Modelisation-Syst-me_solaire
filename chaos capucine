@@ -1,0 +1,147 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Deuxième étude du chaos 
+#on change la position et la vitesse initiale de la lune d'une 
+#vingtaine de kilomètres en modifiant la position initiale sur chaque axe
+#de +10km
+
+def distance(x,y):
+    if(len(x) != len(y)):
+        print("Les vecteurs ne sont pas de même longueurs")
+        return 0
+    n = len(x)
+    d = 0
+    for i in range(n):
+        d = d + (x[i]-y[i])**2    
+    return np.sqrt(d)    
+
+#Calcul de la force
+def A(r,m,G):
+    N = r.shape[0]
+    a = np.zeros((N,3))
+    dx=dy=dz=0
+    for i in range(N):
+        for j in range(N):
+            if (j==i):
+                continue
+            else:
+                dx = r[j,0]-r[i,0]
+                dy = r[j,1]-r[i,1]
+                dz = r[j,2]-r[i,2]
+                d = (dx**2+dy**2+dz**2)**(-1.5)
+                a[i,0] += G*dx*d*m[j]
+                a[i,1] += G*dy*d*m[j]
+                a[i,2] += G*dz*d*m[j]
+    return a
+
+#Initialisation random des coordonnées, utile pour les système avec beaucoup de particules
+def init_coord():
+    return np.random.normal(0,1,3)
+
+N = 3
+
+r = np.empty([N,3])
+r2 = np.empty([N,3])
+
+v = np.empty([N,3])
+v2 = np.empty([N,3])
+
+a = np.zeros([N,3])
+a2 = np.zeros([N,3])
+
+m = np.array([1.989E+30,5.972E+24,7.342E+22]) 
+decalage_rayon = 0
+decalage_vitesse = 0
+
+r[0,:] = np.array([0,0,0]) #Coordonnées soleil
+r[1,:] = np.array([-1.492107302174159E+08,-2.033696924730195E+07,2.993765246242471E+04]) #Coordonnées terre
+r[2,:] = np.array([-1.488965346084017E+08,-2.054043151982423E+07,-3.609859317591414E+03]) #Coordonnées lune
+
+r2[0,:] = np.array([0,0,0]) #Coordonnées soleil
+r2[1,:] = np.array([-1.492107302174159E+08,-2.033696924730195E+07,2.993765246242471E+04]) #Coordonnées terre
+r2[2,:] = np.array([-1.488965346084017E+08+decalage_rayon,-2.054043151982423E+07+decalage_rayon,-3.609859317591414E+03+decalage_rayon]) #Coordonnées lune
+
+v[0,:] = np.array([0,0,0]) #Vitesse soleil
+v[1,:] = np.array([3.144176010978470E+05,-2.560860397868225E+06,1.413888044469161E+02]) #Vitesse terre
+v[2,:] = np.array([3.656255311799980E+05,-2.486288805256289E+06,4.718846490831595E+02]) #Vitesse lune
+
+v2[0,:] = np.array([0,0,0]) #Vitesse soleil
+v2[1,:] = np.array([3.144176010978470E+05,-2.560860397868225E+06,1.413888044469161E+02]) #Vitesse terre
+v2[2,:] = np.array([3.656255311799980E+05+decalage_vitesse,-2.486288805256289E+06+decalage_vitesse,4.718846490831595E+02+decalage_vitesse]) #Vitesse lune
+
+T= 365*10 #correspond à des jours
+dt = 1 #une journée
+G = 6.67408*10**(-11)*10**(-9)*7464960000 #constante de gravité passée de m^3*kg^-1*s^-2 à km^3*kg^-1*J^-2 où J correpond à jours
+t = 0
+
+#calcul de la vitesse de libération
+Rsol = 696342 
+msol = 1.989*10**(30)
+vlib = np.sqrt(2*G*msol/Rsol)
+print("vlib = ", vlib)
+
+
+# conservation de l'énergie 
+E = np.empty(T)
+mlune = 7.342*10**(22)
+
+d_soleil = np.empty(T)
+d_terre  = np.empty(T)
+d_lune = np.empty(T)
+
+POS = np.empty([N,3,T])
+POS2 = np.empty([N,3,T])
+
+#Saute mouton - leapfrog
+for i in range(T):
+    POS[:,0,i] = r[:,0]
+    POS[:,1,i] = r[:,1]
+    POS[:,2,i] = r[:,2]
+    v = v+a*dt/2.0
+    r = r+dt*v
+    a = A(r,m,G)
+    v = v+dt/2.0*a
+    t = t+dt
+    
+    POS2[:,0,i] = r2[:,0]
+    POS2[:,1,i] = r2[:,1]
+    POS2[:,2,i] = r2[:,2]
+    v2 = v2+a2*dt/2.0
+    r2 = r2+dt*v2
+    a2 = A(r2,m,G)
+    v2 = v2+dt/2.0*a2
+    t = t+dt
+    
+    # on regarde si la lune se libère de l'orbite de la Terre
+    vlune = np.sqrt(v2[2,0]**2 + v2[2,1]**2 + v2[2,2]**2)
+
+    if vlune > vlib : 
+        print("La lune s'est libérée de l'orbite de la Terre")
+    
+    r = r+dt*v
+    # on regarde si la lune se crash sur la Terre
+    d_t_l = np.sqrt((r2[1,0]-r2[2,0])**2 + (r2[1,1]-r2[2,1])**2 + (r2[1,2]-r2[2,2])**2 )
+    r_t_l = 6371 + 350
+    if d_t_l < r_t_l : 
+        print("La lune s'est crashée sur la Terre")
+    
+    
+    # calcul de l'énergie 
+    E[i] = (1/2)*mlune*(v2[2,0]**2 + v2[2,1]**2 + v2[2,2]**2) - G*mlune*msol/d_t_l
+    print(E[i])
+
+    d_soleil[i] = distance(POS[0,:,i],POS2[0,:,i])
+    d_terre[i] = distance(POS[1,:,i],POS2[1,:,i])    
+    d_lune[i] = distance(POS[2,:,i],POS2[2,:,i])
+    
+
+
+#Plot distance Lune
+x = np.linspace(0,d_lune.shape[0],d_lune.shape[0])
+
+#plt.title("Evolution de la distance entre la lune des deux configurations")
+#plt.plot(range(d_lune.shape[0]),d_lune)
+#plt.plot(x, 5*x+2*x*(1+np.cos(0.1*x)))
+
+plt.plot(range(E.shape[0]),E/(10**(33)))
