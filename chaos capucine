@@ -78,10 +78,10 @@ t = 0
 #calcul de la vitesse de libération de la lune pour sortir de l'orbite de la Terre
 Rterre = 6378
 mterre = 5.9*10**(24)
-
-vlib = np.sqrt(2*G*mterre/Rterre)
-print("vlib = ", vlib)
-
+d_t_l = np.sqrt((r2[1,0]-r2[2,0])**2 + (r2[1,1]-r2[2,1])**2 + (r2[1,2]-r2[2,2])**2)
+vlib = np.sqrt(2*G*mterre/(Rterre+d_t_l))
+print("vlib = ",vlib)
+Libe = False
 
 # conservation de l'énergie 
 E = np.empty(T)
@@ -94,6 +94,7 @@ d_lune = np.empty(T)
 
 POS = np.empty([N,3,T])
 POS2 = np.empty([N,3,T])
+
 
 #Saute mouton - leapfrog
 for i in range(T):
@@ -116,7 +117,7 @@ for i in range(T):
     t = t+dt
     
     # on regarde si la lune se libère de l'orbite de la Terre
-    vlune = np.sqrt(v2[2,0]**2 + v2[2,1]**2 + v2[2,2]**2)
+    vlune = np.sqrt((v2[2,0]-v2[1,0])**2 + (v2[2,1]-v2[1,1])**2 + (v2[2,2]-v2[1,2])**2)
     print(vlune)
 
     if vlune > vlib : 
