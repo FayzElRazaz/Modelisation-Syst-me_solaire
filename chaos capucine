@@ -81,7 +81,7 @@ mterre = 5.9*10**(24)
 d_t_l = np.sqrt((r2[1,0]-r2[2,0])**2 + (r2[1,1]-r2[2,1])**2 + (r2[1,2]-r2[2,2])**2)
 vlib = np.sqrt(2*G*mterre/(Rterre+d_t_l))
 print("vlib = ",vlib)
-Libe = False
+Libe = False    # booléen = vrai quand la lune se libère de l'orbite de la terre
 
 # conservation de l'énergie 
 E = np.empty(T)
@@ -132,11 +132,11 @@ for i in range(T):
     
     # on regarde si la lune se crash sur la Terre
     r_t_l = 6371 + 350
-    if d_t_l < r_t_l : 
+    if d_t_l < r_t_l : # si la distance entre les deux astres est inférieur à la somme de leur deux rayons, alors les deux sont entrés en collision
         print("La lune s'est crashée sur la Terre")
     
     
-    # calcul de l'énergie 
+    # calcul de l'énergie totale (cinétique + potentielle du à la force gravitationnelle appliquée sur chaque astre)
     Elune = (1/2)*mlune*(v2[2,0]**2 + v2[2,1]**2 + v2[2,2]**2) - G*mlune*mterre/d_t_l- G*mlune*msol/d_s_l
     Esoleil = (1/2)*msol*(v2[0,0]**2 + v2[0,1]**2 + v2[0,2]**2) - G*msol*mterre/d_t_s - G*msol*mlune/d_s_l
     Eterre = (1/2)*mterre*(v2[1,0]**2 + v2[1,1]**2 + v2[1,2]**2) - G*msol*mterre/d_t_s - G*mlune*mterre/d_t_l
@@ -153,4 +153,4 @@ if Libe :
 x = np.linspace(0,d_lune.shape[0],d_lune.shape[0])
 
 
-plt.plot(range(E.shape[0]),E/(10**(38)))
+plt.plot(range(E.shape[0]),E/(10**(38))) # vérification de la conservation de l'énergie totale du système 
