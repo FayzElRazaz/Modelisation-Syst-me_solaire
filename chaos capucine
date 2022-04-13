@@ -76,9 +76,10 @@ G = 6.67408*10**(-11)*10**(-9)*7464960000 #constante de gravité passée de m^3*
 t = 0
 
 #calcul de la vitesse de libération
-Rsol = 696342 
-msol = 1.989*10**(30)
-vlib = np.sqrt(2*G*msol/Rsol)
+Rterre = 6378
+mterre = 5.9*10**(24)
+msol = 1.9*10**(30)
+vlib = np.sqrt(2*G*mterre/Rterre)
 print("vlib = ", vlib)
 
 
@@ -115,21 +116,29 @@ for i in range(T):
     
     # on regarde si la lune se libère de l'orbite de la Terre
     vlune = np.sqrt(v2[2,0]**2 + v2[2,1]**2 + v2[2,2]**2)
+    print(vlune)
 
     if vlune > vlib : 
         print("La lune s'est libérée de l'orbite de la Terre")
     
     r = r+dt*v
-    # on regarde si la lune se crash sur la Terre
+    
+    # calcule des distances entre les astres
     d_t_l = np.sqrt((r2[1,0]-r2[2,0])**2 + (r2[1,1]-r2[2,1])**2 + (r2[1,2]-r2[2,2])**2 )
+    d_t_s = np.sqrt((r2[1,0]-r2[0,0])**2 + (r2[1,1]-r2[0,1])**2 + (r2[1,2]-r2[0,2])**2 )
+    d_s_l = np.sqrt((r2[0,0]-r2[2,0])**2 + (r2[0,1]-r2[2,1])**2 + (r2[0,2]-r2[2,2])**2 )
+    
+    # on regarde si la lune se crash sur la Terre
     r_t_l = 6371 + 350
     if d_t_l < r_t_l : 
         print("La lune s'est crashée sur la Terre")
     
     
     # calcul de l'énergie 
-    E[i] = (1/2)*mlune*(v2[2,0]**2 + v2[2,1]**2 + v2[2,2]**2) - G*mlune*msol/d_t_l
-    print(E[i])
+    Elune = (1/2)*mlune*(v2[2,0]**2 + v2[2,1]**2 + v2[2,2]**2) - G*mlune*mterre/d_t_l- G*mlune*msol/d_s_l
+    Esoleil = (1/2)*msol*(v2[0,0]**2 + v2[0,1]**2 + v2[0,2]**2) - G*msol*mterre/d_t_s - G*msol*mlune/d_s_l
+    Eterre = (1/2)*mterre*(v2[1,0]**2 + v2[1,1]**2 + v2[1,2]**2) - G*msol*mterre/d_t_s - G*mlune*mterre/d_t_l
+    E[i] = Elune + Esoleil + Eterre
 
     d_soleil[i] = distance(POS[0,:,i],POS2[0,:,i])
     d_terre[i] = distance(POS[1,:,i],POS2[1,:,i])    
@@ -140,8 +149,5 @@ for i in range(T):
 #Plot distance Lune
 x = np.linspace(0,d_lune.shape[0],d_lune.shape[0])
 
-#plt.title("Evolution de la distance entre la lune des deux configurations")
-#plt.plot(range(d_lune.shape[0]),d_lune)
-#plt.plot(x, 5*x+2*x*(1+np.cos(0.1*x)))
 
-plt.plot(range(E.shape[0]),E/(10**(33)))
+plt.plot(range(E.shape[0]),E/(10**(38)))
