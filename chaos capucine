@@ -75,10 +75,10 @@ dt = 1 #une journée
 G = 6.67408*10**(-11)*10**(-9)*7464960000 #constante de gravité passée de m^3*kg^-1*s^-2 à km^3*kg^-1*J^-2 où J correpond à jours
 t = 0
 
-#calcul de la vitesse de libération
+#calcul de la vitesse de libération de la lune pour sortir de l'orbite de la Terre
 Rterre = 6378
 mterre = 5.9*10**(24)
-msol = 1.9*10**(30)
+
 vlib = np.sqrt(2*G*mterre/Rterre)
 print("vlib = ", vlib)
 
@@ -86,6 +86,7 @@ print("vlib = ", vlib)
 # conservation de l'énergie 
 E = np.empty(T)
 mlune = 7.342*10**(22)
+msol = 1.9*10**(30)
 
 d_soleil = np.empty(T)
 d_terre  = np.empty(T)
@@ -119,7 +120,7 @@ for i in range(T):
     print(vlune)
 
     if vlune > vlib : 
-        print("La lune s'est libérée de l'orbite de la Terre")
+        Libe = True 
     
     r = r+dt*v
     
@@ -144,7 +145,8 @@ for i in range(T):
     d_terre[i] = distance(POS[1,:,i],POS2[1,:,i])    
     d_lune[i] = distance(POS[2,:,i],POS2[2,:,i])
     
-
+if Libe : 
+    print("La lune s'est libérée de l'orbite de la Terre")
 
 #Plot distance Lune
 x = np.linspace(0,d_lune.shape[0],d_lune.shape[0])
