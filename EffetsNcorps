@@ -1,0 +1,256 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Apr 20 11:37:03 2022
+
+@author: FaYzerR
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d.axes3d as p3
+import matplotlib.animation as animation
+
+def distance(x,y):
+    if(len(x) != len(y)):
+        print("Les vecteurs ne sont pas de même longueurs")
+        return 0
+    n = len(x)
+    d = 0
+    for i in range(n):
+        d = d + (x[i]-y[i])**2    
+    return np.sqrt(d)
+
+def update_lines(num, dataLines, lines):
+    for line, data in zip(lines, dataLines):
+        # NOTE: there is no .set_data() for 3 dim data...
+        line.set_data(data[0:2, :num])
+        line.set_3d_properties(data[2, :num])
+    return lines
+
+#Calcul de la force
+def A(r,m,G):
+    N = r.shape[0]
+    a = np.zeros((N,3))
+    dx=dy=dz=0
+    for i in range(N):
+        for j in range(N):
+            if (j==i):
+                continue
+            else:
+                dx = r[j,0]-r[i,0]
+                dy = r[j,1]-r[i,1]
+                dz = r[j,2]-r[i,2]
+                d = (dx**2+dy**2+dz**2)**(-1.5)
+                a[i,0] += G*dx*d*m[j]
+                a[i,1] += G*dy*d*m[j]
+                a[i,2] += G*dz*d*m[j]
+    return a
+
+#Initialisation random des coordonnées, utile pour les système avec beaucoup de particules
+def init_coord():
+    return np.random.normal(0,1,3)
+
+T= 365*100 #correspond à des jours
+dt = 1 #une journée
+G = 6.67408*10**(-11)*10**(-9)*7464960000 #constante de gravité passée de m^3*kg^-1*s^-2 à km^3*kg^-1*J^-2 où J correpond à jours
+t = 0
+
+
+N1 = 10
+
+r = np.empty([N1,3])
+v = np.empty([N1,3])
+a = np.zeros([N1,3])
+
+#Cas où tous les corps ont même masse
+#m = np.ones(N)
+#Cas où les poids sont réparties de façon aléatoires
+
+#Poids respectifs du soleil, de la terre et de la lune
+m = np.array([1.989E+30, #Soleil
+              5.972E+24, #Terre
+              7.342E+22, #Lune
+              3.285E+23, #Mercure
+              4.867E+24, #Vénus
+              6.39E+23,  #Mars
+              1.898E+27, #Jupiter
+              5.683E+26,  #Saturne
+              8.681E+25, #Uranus
+              1.024E+26]) #Neptune
+
+#Soleil
+r[0,:] = np.array([0,0,0]) 
+#Terre
+r[1,:] = np.array([-1.495030259365935E+08,-1.777323119502031E+07,2.978430711746868E+04])
+#Lune
+r[2,:] = np.array([-1.492484053491704E+08,-1.804472555089653E+07,-3.132471874961630E+03])
+#Mercure
+r[3:] = np.array([5.243074652677305E+07,-1.420856483787153E+07,-6.095865556717114E+06])
+#Venus
+r[4:] = np.array([-6.427918505868720E+07,-8.778180914889294E+07,2.450111911497809E+06])
+#Mars
+r[5:] = np.array([4.738771217485745E+07,-2.078456714186202E+08,-5.531332641211271E+06])
+#Jupiter
+r[6:] = np.array([7.230529045748153E+08,-1.707291604942690E+08,-1.546818926806844E+07])
+#Saturne
+r[7:] = np.array([1.085878709029275E+09,-1.005280093818648E+09,-2.575414733817548E+07])
+#Uranus
+r[8:] = np.array([2.117295213018989E+09,2.051166240133175E+09,-1.981185349841690E+07])
+#Neptune
+r[9:] = np.array([4.436860858128153E+09,-5.711772465046259E+08,-9.048971534733537E+07])
+
+#Vitesse Soleil
+v[0,:] = np.array([0,0,0])
+#Vitesse Terre
+v[1,:] = np.array([2.701592386847564E+05, -2.566481074083196E+06, 1.652888480204240E+02]) 
+#Vitesse Lune
+v[2,:] = np.array([3.375857236186352E+05, -2.505679058640820E+06, -1.426113478821475E+03]) 
+#Vitesse Mercure
+v[3,:] = np.array([2.858060522197289E+05, 4.249234429927055E+06, 3.211178624650422E+05]) 
+#Vitesse Vénus
+v[4,:] = np.array([2.440958960618373E+06, -1.773531087751668E+06, -1.651797867156072E+05]) 
+#Vitesse Jupiter
+v[6,:] = np.array([2.458366265431705E+05, 1.151595656037149E+06, -1.028410271213177E+04])
+#Vitesse Saturne 
+v[7,:] = np.array([5.201464657981435E+05, 6.107804453217959E+05, -3.134004151248140E+04])
+#Vitesse Uranus 
+v[8,:] = np.array([-4.137151668336200E+05, 3.951887516357786E+05, 6.832523225340500E+03])
+#Vitesse Neptune
+v[9,:] = np.array([5.681536910101957E+04, 4.684860374740867E+05, -1.098965470611272E+04])
+
+POS = np.empty([N1,3,T])
+
+#Saute mouton - leapfrog
+for i in range(T):
+    POS[:,0,i] = r[:,0]
+    POS[:,1,i] = r[:,1]
+    POS[:,2,i] = r[:,2]
+    v = v+a*dt/2.0
+    r = r+dt*v
+    a = A(r,m,G)
+    v = v+dt/2.0*a
+    t = t+dt
+    
+N2 = 2
+
+r = np.empty([N2,3])
+v = np.empty([N2,3])
+a = np.zeros([N2,3])
+
+#Cas où tous les corps ont même masse
+#m = np.ones(N)
+#Cas où les poids sont réparties de façon aléatoires
+
+#Poids respectifs du soleil, de la terre et de la lune
+m = np.array([1.989E+30, #Soleil
+              5.972E+24, #Terre
+              7.342E+22, #Lune
+              3.285E+23, #Mercure
+              4.867E+24, #Vénus
+              6.39E+23,  #Mars
+              1.898E+27, #Jupiter
+              5.683E+26,  #Saturne
+              8.681E+25, #Uranus
+              1.024E+26]) #Neptune
+
+#Soleil
+r[0,:] = np.array([0,0,0]) 
+#Terre
+r[1,:] = np.array([-1.495030259365935E+08,-1.777323119502031E+07,2.978430711746868E+04])
+
+#Vitesse Soleil
+v[0,:] = np.array([0,0,0])
+#Vitesse Terre
+v[1,:] = np.array([2.701592386847564E+05, -2.566481074083196E+06, 1.652888480204240E+02]) 
+
+# T= 2000 #correspond à des jours
+# dt = 1 #une journée
+# G = 6.67408*10**(-11)*10**(-9)*7464960000 #constante de gravité passée de m^3*kg^-1*s^-2 à km^3*kg^-1*J^-2 où J correpond à jours
+# t = 0
+
+POS2 = np.empty([N2,3,T])
+
+#Saute mouton - leapfrog
+for i in range(T):
+    POS2[:,0,i] = r[:,0]
+    POS2[:,1,i] = r[:,1]
+    POS2[:,2,i] = r[:,2]
+    v = v+a*dt/2.0
+    r = r+dt*v
+    a = A(r,m,G)
+    v = v+dt/2.0*a
+    t = t+dt
+
+POS[1,:,0]
+POS2[1,:,0]
+
+d_terre  = np.empty(int(T/dt))
+for t in range(0,int(T/dt),1):
+    d_terre[t] = distance(POS[1,:,t],POS2[1,:,t])    
+
+plt.title("Effet des N corps sur la Terre")
+plt.xlabel('Jours')
+plt.ylabel('Distance en km')
+plt.plot(range(d_terre.shape[0]),d_terre)
+
+# #Visualisation des deux Terres selon les configurations
+
+# fig = plt.figure()
+# ax = p3.Axes3D(fig)
+
+# data0 = [POS[0,:,:]]
+# data1 = [POS[1,:,:]]
+# data2 = [POS2[1,:,:]]
+
+# lines0 = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1],marker = "o", color="yellow", markersize = 10)[0] for dat in data0]
+# lines1 = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1],marker = ".", color="blue", markersize = 5)[0] for dat in data1]
+# lines2 = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1],marker = '.', color="green", markersize = 5)[0] for dat in data2]
+
+# min_x = min(min(POS[0,0,:])
+#             ,min(POS[1,0,:])
+#             ,min(POS2[1,0,:])
+#             )
+# max_x = max(max(POS[0,0,:])
+#             ,max(POS[1,0,:])
+#             ,max(POS2[1,0,:])
+#             )
+# min_y = min(min(POS[0,1,:])
+#             ,min(POS[1,1,:])
+#             ,min(POS2[1,1,:])
+#             )
+# max_y = max(max(POS[0,1,:])
+#             ,max(POS[1,1,:])
+#             ,max(POS2[1,1,:])
+#             )
+# min_z = min(min(POS[0,2,:])
+#             ,min(POS[1,2,:])
+#             ,min(POS2[1,2,:])
+#             )
+# max_z = max(max(POS[0,2,:])
+#             ,max(POS[1,2,:])
+#             ,max(POS2[1,2,:])
+#             )
+
+# # Setting the axes properties
+# ax.set_xlim3d([min_x, max_x])
+# ax.set_xlabel('X')
+
+# ax.set_ylim3d([min_y, max_y])
+# ax.set_ylabel('Y')
+
+# ax.set_zlim3d([min_z, max_z])
+# ax.set_zlabel('Z')
+
+# ax.set_title("Système Solaire (jusqu'à Mars")
+
+# ax.set_facecolor('black')
+# ax.grid(False)
+# ax.set_axis_off()
+
+
+# nn = 365*50
+# line_ani0 = animation.FuncAnimation(fig, update_lines, nn, fargs=(data0, lines0),interval=1, blit=False)
+# line_ani1 = animation.FuncAnimation(fig, update_lines, nn, fargs=(data1, lines1),interval=1, blit=False)
+# line_ani2 = animation.FuncAnimation(fig, update_lines, nn, fargs=(data2, lines2),interval=1, blit=False)
+
+# plt.show()
